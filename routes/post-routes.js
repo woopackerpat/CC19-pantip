@@ -3,7 +3,7 @@ const authenticate = require("../middlewares/authenticate");
 const postControllers = require("../controllers/post-controllers");
 const router = express.Router();
 
-router.get("/list", postControllers.getPostList);
+router.get("/list/:category", postControllers.getPostList);
 
 router.get("/:id", postControllers.getPost);
 
