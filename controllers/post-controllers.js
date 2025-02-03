@@ -168,9 +168,88 @@ exports.updatePost = async (req, res, next) => {
 
   const post = await postService.getPostById(id);
 
-  res.json({ message: "Update post" });
+  if (!post) {
+    return createError(400, "Post not found");
+  }
+
+  if (post.userId !== userId) {
+    return createError(403, "Forbidden");
+  }
+
+  // const tagProsmiseArray = tags.map((el) => {
+  //   return prisma.tag.findFirst({
+  //     where: {
+  //       name: el,
+  //     },
+  //   });
+  // });
+
+  // const tagArray = await Promise.all(tagProsmiseArray);
+
+  // const toCreateTags = tags.filter(
+  //   (tag) => !tagArray.find((el) => el?.name === tag)
+  // );
+
+  // await prisma.tag.createMany({
+  //   data: toCreateTags.map((el) => ({ name: el })), //[{name: "ของเล่น"},{name: "ของเล่น2"}]
+  // });
+
+  // const updatedPost = await prisma.post.update({
+  //   where: {
+  //     id: post.id,
+  //   },
+  //   data: {
+  //     title,
+  //     content,
+  //     tags: {
+  //       connect: tags.map((el) => ({ name: el })),
+  //     },
+  //   },
+  //   include: {
+  //     tags: true,
+  //   },
+  // });
+
+  const updatedPost = await prisma.post.update({
+    where: {
+      id: post.id,
+    },
+    data: {
+      title,
+      content,
+      tags: {
+        connectOrCreate: tags.map((el) => ({
+          where: { name: el },
+          create: { name: el },
+        })),
+      },
+    },
+    include: {
+      tags: true,
+    },
+  });
+
+  res.json({ post: updatedPost });
 };
 
-exports.deletePost = (req, res, next) => {
+exports.deletePost = async (req, res, next) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  if (!id) {
+    return createError("Id to be provided");
+  }
+  const post = await postService.getPostById(id);
+
+  if (userId !== post.userId) {
+    return createError(403, "Forbidden");
+  }
+
+  await prisma.post.delete({
+    where: {
+      id: post.id,
+    },
+  });
+
   res.json({ message: "Delete post" });
 };
