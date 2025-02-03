@@ -9,7 +9,7 @@ router.get("/:id", postControllers.getPost);
 
 router.post("/", postControllers.createPost);
 
-router.put("/", authenticate, postControllers.updatePost);
+router.put("/:id", authenticate, postControllers.updatePost);
 
 router.delete("/", authenticate, postControllers.deletePost);
 

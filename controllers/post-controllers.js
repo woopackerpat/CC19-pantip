@@ -1,5 +1,6 @@
 const createError = require("../utils/createError");
 const prisma = require("../configs/prisma");
+const postService = require("../services/post-services");
 
 exports.getPostList = async (req, res, next) => {
   const { category } = req.params;
@@ -48,22 +49,7 @@ exports.getPost = async (req, res, next) => {
     return createError(400, "Invalid id");
   }
 
-  const post = await prisma.post.findFirst({
-    where: {
-      id: Number(id),
-    },
-    include: {
-      tags: true,
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
-      comments: true,
-    },
-  });
+  const post = await postService.getPostById(id);
 
   res.json({ post });
 };
@@ -142,7 +128,46 @@ exports.createPost = async (req, res, next) => {
   }
 };
 
-exports.updatePost = (req, res, next) => {
+exports.updatePost = async (req, res, next) => {
+  const { id } = req.params;
+  const { title, content, userId, tags } = req.body;
+
+  if (!id) {
+    return createError(400, "Id to be provideds");
+  }
+
+  if (!title) {
+    return createError(400, "Title to be provideds");
+  }
+
+  if (!content) {
+    return createError(400, "Content to be provided");
+  }
+
+  if (!userId) {
+    return createError(400, "User id to be provided");
+  }
+
+  if (
+    typeof title !== "string" ||
+    typeof content !== "string" ||
+    typeof userId !== "number"
+  ) {
+    return createError(400, "Invalid typeof title, content or userId");
+  }
+
+  if (!Array.isArray(tags)) {
+    return createError(400, "Tags should be arrays");
+  }
+
+  for (let el of tags) {
+    if (typeof el !== "string") {
+      return createError(400, "Invalid typeof tags");
+    }
+  }
+
+  const post = await postService.getPostById(id);
+
   res.json({ message: "Update post" });
 };
 
