@@ -253,3 +253,54 @@ exports.deletePost = async (req, res, next) => {
 
   res.json({ message: "Delete post" });
 };
+
+exports.commentPost = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { content, userId } = req.body;
+
+    if (!id) {
+      return createError(400, "Post id to be provided");
+    }
+
+    if (!content) {
+      return createError(400, "Content to be provided");
+    }
+
+    const comment = await prisma.comment.create({
+      data: {
+        content,
+        post: {
+          connect: {
+            id: Number(id),
+          },
+        },
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
+    });
+
+    res.json({ comment });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateComment = (req, res, next) => {
+  try {
+    res.json({ message: "Update comment" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteComment = (req, res, next) => {
+  try {
+    res.json({ message: "Delete comment" });
+  } catch (err) {
+    next(err);
+  }
+};
