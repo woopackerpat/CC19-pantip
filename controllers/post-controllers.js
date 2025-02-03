@@ -289,9 +289,30 @@ exports.commentPost = async (req, res, next) => {
   }
 };
 
-exports.updateComment = (req, res, next) => {
+exports.updateComment = async (req, res, next) => {
   try {
-    res.json({ message: "Update comment" });
+    const { commentId } = req.params;
+    const { content, userId } = req.body;
+
+    if (!commentId) {
+      return createError(400, "Comment id to be provided");
+    }
+
+    if (!content) {
+      return createError(400, "Content to be provided");
+    }
+
+    const comment = await prisma.comment.update({
+      where: {
+        id: Number(commentId),
+        userId,
+      },
+      data: {
+        content,
+      },
+    });
+
+    res.json({ comment });
   } catch (err) {
     next(err);
   }
