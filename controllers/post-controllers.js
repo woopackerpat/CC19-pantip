@@ -318,9 +318,31 @@ exports.updateComment = async (req, res, next) => {
   }
 };
 
-exports.deleteComment = (req, res, next) => {
+exports.deleteComment = async (req, res, next) => {
   try {
-    res.json({ message: "Delete comment" });
+    const { commentId } = req.params;
+    const { userId } = req.query;
+
+    if (!commentId) {
+      return createError(400, "Comment id to be provided");
+    }
+
+    const comment = await prisma.comment.findFirst({
+      where: {
+        id: Number(commentId),
+      },
+    });
+
+    if (comment.userId !== Number(userId)) {
+      return createError(403, "Forbidden");
+    }
+
+    await prisma.comment.delete({
+      where: {
+        id: Number(commentId),
+      },
+    });
+    res.status(204).json({ message: "Delete comment" });
   } catch (err) {
     next(err);
   }
